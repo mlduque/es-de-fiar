@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>¿Este email es de fiar? Detector de phishing gratuito</title>
+<meta name="description" content="Pega un email sospechoso y descubre en segundos si tiene pinta de estafa. Gratis y sin que tu correo salga de tu dispositivo.">
+<meta property="og:title" content="¿Este email es de fiar?">
+<meta property="og:description" content="Detector de phishing gratuito: pega el email y te decimos si tiene pinta de estafa.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#EDF1F5; --card:#FFFFFF; --field:#F5F7FA; --ink:#16233D; --muted:#56627A; --line:#CBD3DF;
+  --safe:#1E7A4C; --warn:#A35F00; --danger:#C2362B; --focus:#2F5BD3;
+  --btn:#16233D; --btn-ink:#FFFFFF; --air-red:#C2362B; --air-blue:#2F5BD3;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0F1626; --card:#172036; --field:#111a2c; --ink:#E7ECF4; --muted:#9AA6BC; --line:#2C3956;
+    --safe:#4CC08A; --warn:#E5A23A; --danger:#FF6B5E; --focus:#7FA2FF;
+    --btn:#E7ECF4; --btn-ink:#0F1626; --air-red:#E0574C; --air-blue:#6F93F0;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0F1626; --card:#172036; --field:#111a2c; --ink:#E7ECF4; --muted:#9AA6BC; --line:#2C3956;
+  --safe:#4CC08A; --warn:#E5A23A; --danger:#FF6B5E; --focus:#7FA2FF;
+  --btn:#E7ECF4; --btn-ink:#0F1626; --air-red:#E0574C; --air-blue:#6F93F0;
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1.0625rem/1.6 "Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:"Bricolage Grotesque","Atkinson Hyperlegible",system-ui,sans-serif;line-height:1.1;margin:0}
+a{color:inherit}
+img,svg{max-width:100%}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+.wrap{max-width:46rem;margin:0 auto;padding:0 1.25rem}
+
+.top{display:flex;justify-content:space-between;align-items:center;padding:1.1rem 0}
+.brand{display:flex;gap:.55rem;align-items:center;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:600;font-size:1.05rem;text-decoration:none}
+.share{background:none;border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:.4rem .9rem;font:inherit;font-size:.95rem;cursor:pointer}
+
+.hero h1{font-size:clamp(2.5rem,9vw,4.4rem);font-weight:800;letter-spacing:-.035em;margin:1.75rem 0 .9rem;max-width:12ch}
+.hero p{font-size:1.18rem;color:var(--muted);max-width:33rem;margin:0 0 2rem}
+
+.tool{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tool::before{content:"";display:block;height:8px;background:repeating-linear-gradient(-45deg,var(--air-red) 0 14px,transparent 14px 22px,var(--air-blue) 22px 36px,transparent 36px 44px)}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tab{flex:1;padding:.95rem .5rem;background:none;border:0;border-bottom:3px solid transparent;font:inherit;font-weight:700;font-size:1rem;color:var(--muted);cursor:pointer}
+.tab[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink)}
+.tool-body{padding:1.25rem}
+.hint{color:var(--muted);font-size:.97rem;margin:0 0 .8rem}
+.hint a{color:var(--ink)}
+textarea{width:100%;min-height:14rem;resize:vertical;border:1px solid var(--line);border-radius:10px;padding:.9rem;background:var(--field);color:var(--ink);font:.92rem/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+textarea::placeholder{color:var(--muted)}
+.actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem}
+.btn{border-radius:10px;padding:.85rem 1.4rem;font:inherit;font-weight:700;cursor:pointer}
+.btn-primary{background:var(--btn);color:var(--btn-ink);border:0}
+.btn-ghost{background:none;border:1px solid var(--line);color:var(--ink);font-weight:400}
+.examples{margin-top:1.25rem;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;font-size:.95rem;color:var(--muted)}
+.chip{border:1px dashed var(--line);background:none;color:var(--ink);border-radius:999px;padding:.35rem .85rem;font:inherit;font-size:.92rem;cursor:pointer}
+.privacy{display:flex;gap:.6rem;align-items:flex-start;margin:1.1rem 0 0;font-size:.92rem;color:var(--muted)}
+.privacy svg{flex:none;margin-top:.15rem}
+
+.result{margin-top:2.75rem}
+.result:empty{display:none}
+.verdict{display:flex;gap:1.75rem;align-items:center;flex-wrap:wrap}
+.v-peligroso{--c:var(--danger)} .v-sospechoso{--c:var(--warn)} .v-seguro{--c:var(--safe)}
+.stamp{color:var(--c);border:4px solid var(--c);border-radius:12px;padding:.55rem 1.05rem;font-family:"Bricolage Grotesque",system-ui,sans-serif;font-weight:800;font-size:clamp(1.6rem,6.5vw,2.3rem);letter-spacing:.05em;text-transform:uppercase;line-height:1;transform:rotate(-7deg);box-shadow:inset 0 0 0 3px var(--paper),inset 0 0 0 5px var(--c);animation:stamp .5s cubic-bezier(.2,1.5,.4,1) both;white-space:nowrap}
+@keyframes stamp{from{transform:rotate(-7deg) scale(1.9);opacity:0}to{transform:rotate(-7deg) scale(1);opacity:1}}
+.verdict-text{flex:1;min-width:15rem}
+.verdict-text h2{font-size:1.65rem;margin-bottom:.35rem}
+.verdict-text p{margin:0;color:var(--muted)}
+.meter{height:8px;border-radius:99px;background:var(--line);margin:.9rem 0 .35rem;overflow:hidden}
+.meter span{display:block;height:100%;background:var(--c);border-radius:99px}
+.score{font-size:.92rem}
+
+.block{margin-top:2.25rem}
+.block h3{font-size:1.25rem;margin-bottom:.9rem}
+.list{list-style:none;padding:0;margin:0;display:grid;gap:1rem}
+.item{border-left:4px solid var(--sev);padding:.1rem 0 .1rem 1rem}
+.item strong{display:block;font-size:1.05rem}
+.item p{margin:.2rem 0 0;color:var(--muted)}
+.ev{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.45rem}
+.ev code{font:.84rem/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--field);border:1px solid var(--line);border-radius:6px;padding:.15rem .45rem;word-break:break-all}
+.sev-alto{--sev:var(--danger)} .sev-medio{--sev:var(--warn)} .sev-bajo{--sev:var(--line)} .sev-ok{--sev:var(--safe)}
+.sev-tag{font-size:.82rem;font-weight:700;color:var(--sev)}
+.sev-bajo .sev-tag{color:var(--muted)}
+
+.todo{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:1.25rem 1.4rem}
+.todo ul{margin:.5rem 0 0;padding-left:1.2rem}
+.todo li{margin:.35rem 0}
+
+details{border-top:1px solid var(--line)}
+details:last-of-type{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;padding:.9rem 0;font-weight:700;list-style-position:outside}
+details > div{padding:0 0 1rem;color:var(--muted)}
+details ol{margin:0;padding-left:1.25rem}
+.tech-wrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:.55rem .6rem .55rem 0;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:700;white-space:nowrap;padding-right:1.25rem}
+td{word-break:break-word}
+.dot{display:inline-block;width:.6rem;height:.6rem;border-radius:50%;margin-right:.4rem;background:var(--muted)}
+.dot.g{background:var(--safe)} .dot.y{background:var(--warn)} .dot.r{background:var(--danger)}
+
+.alert{border-left:4px solid var(--warn);padding:.3rem 0 .3rem 1rem}
+.alert p{margin:.25rem 0 0;color:var(--muted)}
+
+.guide{margin-top:4rem}
+.guide h2,.about h2{font-size:1.6rem;margin-bottom:.6rem}
+.guide > p{color:var(--muted);margin:0 0 1rem}
+.about{margin-top:3.5rem}
+.about p{color:var(--muted);margin:0 0 .75rem;max-width:38rem}
+
+footer{margin-top:4rem;padding:1.5rem 0 2.5rem;border-top:1px solid var(--line);font-size:.95rem;color:var(--muted)}
+footer strong{color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:calc(1.25rem + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--btn);color:var(--btn-ink);padding:.6rem 1.1rem;border-radius:999px;font-size:.95rem;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){.stamp{animation:none}.toast{transition:none}}
+@media (max-width:30rem){.verdict{gap:1.1rem}.btn{flex:1}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="#" aria-label="Inicio">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="6" width="20" height="14" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 8l9 6 9-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="20.5" cy="19.5" r="4.5" fill="var(--paper)" stroke="currentColor" stroke-width="2"/><path d="M23.8 22.8l2.7 2.7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+      Detector de phishing
+    </a>
+    <button class="share" id="shareBtn" type="button">Compartir</button>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>¿Este email es de fiar?</h1>
+      <p>Pega el correo que te genera dudas y en segundos te decimos si tiene pinta de estafa, y por qué.</p>
+    </section>
+
+    <section class="tool" aria-label="Analizador de emails">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-text" aria-selected="true" aria-controls="panel" data-mode="text" type="button">Texto del email</button>
+        <button class="tab" role="tab" id="tab-headers" aria-selected="false" aria-controls="panel" data-mode="headers" type="button">Cabeceras (más preciso)</button>
+      </div>
+      <div class="tool-body" id="panel" role="tabpanel">
+        <p class="hint" id="hint">Copia el email entero, con el remitente si puedes, y pégalo aquí.</p>
+        <textarea id="input" aria-label="Contenido del email" spellcheck="false" placeholder="De: Nombre <direccion@ejemplo.com>&#10;Asunto: ...&#10;&#10;Texto del mensaje con sus enlaces..."></textarea>
+        <div class="actions">
+          <button class="btn btn-primary" id="analyzeBtn" type="button">Analizar email</button>
+          <button class="btn btn-ghost" id="clearBtn" type="button">Borrar</button>
+        </div>
+        <div class="examples">
+          <span>Probar con un ejemplo:</span>
+          <button class="chip" type="button" data-ex="0">Paquete retenido</button>
+          <button class="chip" type="button" data-ex="1">Aviso del banco</button>
+          <button class="chip" type="button" data-ex="2">Newsletter real</button>
+        </div>
+        <p class="privacy">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.5 7V5a2.5 2.5 0 015 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          Tu email no sale de tu dispositivo: el análisis se hace en tu navegador y no se guarda nada.
+        </p>
+      </div>
+    </section>
+
+    <section class="result" id="result" aria-live="polite"></section>
+
+    <section class="guide" id="cabeceras">
+      <h2>Cómo copiar las cabeceras de un email</h2>
+      <p>Las cabeceras son la etiqueta de envío del correo: dicen desde dónde salió de verdad y si el dominio lo autorizó. Con ellas el análisis es mucho más fiable.</p>
+      <details><summary>Gmail (ordenador)</summary><div><ol><li>Abre el email.</li><li>Pulsa los tres puntos junto a Responder.</li><li>Elige «Mostrar original».</li><li>Pulsa «Copiar en el portapapeles» y pégalo aquí.</li></ol></div></details>
+      <details><summary>Outlook.com y Outlook web</summary><div><ol><li>Abre el email.</li><li>Pulsa los tres puntos arriba a la derecha.</li><li>Ve a «Ver» y luego «Ver detalles del mensaje».</li><li>Copia todo el texto y pégalo aquí.</li></ol></div></details>
+      <details><summary>Outlook de escritorio</summary><div><ol><li>Abre el email con doble clic.</li><li>Ve a «Archivo» y luego «Propiedades».</li><li>Copia el contenido del cuadro «Encabezados de Internet».</li></ol></div></details>
+      <details><summary>Apple Mail</summary><div><ol><li>Selecciona el email.</li><li>En el menú, elige «Visualización», luego «Mensaje» y «Fuente original».</li><li>Copia el texto completo.</li></ol></div></details>
+      <details><summary>Yahoo Mail</summary><div><ol><li>Abre el email.</li><li>Pulsa los tres puntos y elige «Ver mensaje sin formato».</li><li>Copia todo el texto.</li></ol></div></details>
+      <details><summary>Desde el móvil</summary><div><p>La mayoría de apps móviles no muestran las cabeceras. Usa la pestaña «Texto del email» pegando el mensaje, o ábrelo después en un ordenador.</p></div></details>
+    </section>
+
+    <section class="about">
+      <h2>Qué revisa este detector</h2>
+      <p>Lo mismo que miraría un profesional del email antes de fiarse: si el remitente es quien dice ser, adónde llevan de verdad los enlaces, si el dominio autorizó el envío (SPF, DKIM y DMARC) y si el mensaje usa los trucos clásicos de las estafas, como meter prisa o pedir datos.</p>
+      <p>Es una herramienta orientativa: ningún detector es infalible. Ante la duda, contacta con la empresa por sus canales oficiales.</p>
+    </section>
+  </main>
+
+  <footer id="footer"></footer>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===== Edita aquí tus datos ===== */
+const AUTOR = {
+  nombre: "María Luisa Duque",
+  rol: "Email Deliverability Manager",
+  linkedin: "https://www.linkedin.com/in/marialuisaduque/"
+};
+/* ================================ */
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\\/]/g, "\\$&");
+
+$("#footer").innerHTML = `<p>Hecho por <strong>${esc(AUTOR.nombre)}</strong>, ${esc(AUTOR.rol)}. <a href="${esc(AUTOR.linkedin)}" target="_blank" rel="noopener">Conecta conmigo en LinkedIn</a>.</p><p>Herramienta gratuita y orientativa. Ningún detector es infalible.</p>`;
+
+/* ---------- Datos de referencia ---------- */
+const MULTI = new Set(["co.uk","org.uk","gov.uk","com.mx","gob.mx","com.ar","gob.ar","com.br","com.es","gob.es","org.es","com.co","com.pe","com.uy","com.ve","com.ec","com.py","com.bo","com.gt","co.cr","com.do","com.pa","com.sv","com.hn","com.ni","com.au","co.jp"]);
+const FREE = new Set(["gmail.com","googlemail.com","hotmail.com","hotmail.es","outlook.com","outlook.es","live.com","yahoo.com","yahoo.es","icloud.com","me.com","proton.me","protonmail.com","aol.com","gmx.com","gmx.es","yandex.com","mail.ru"]);
+const SHORT = new Set(["bit.ly","tinyurl.com","t.co","goo.gl","ow.ly","is.gd","cutt.ly","rebrand.ly","shorturl.at","rb.gy","t.ly","buff.ly","tiny.cc","s.id","v.gd","qrco.de"]);
+const BADTLD = new Set(["xyz","top","click","zip","mov","tk","ml","ga","cf","gq","work","icu","buzz","rest","cam","country","kim","loan","men","date","racing","review","win","bid","stream","gdn","lol","quest","sbs","cfd","monster","support","online","site"]);
+
+const BRANDS = [
+  {name:"PayPal",keys:["paypal"],domains:["paypal.com","paypal.es","paypal.me"],text:/\bpaypal\b/i},
+  {name:"Amazon",keys:["amazon"],domains:["amazon.com","amazon.es","amazon.com.mx","amazon.co.uk","amazon.de","amazon.fr","amazon.it","amazon.com.br","amazonaws.com","amazonses.com","media-amazon.com","ssl-images-amazon.com"],text:/\bamazon\b/i},
+  {name:"Netflix",keys:["netflix"],domains:["netflix.com","nflxext.com"],text:/\bnetflix\b/i},
+  {name:"Apple",keys:["apple","icloud","itunes"],domains:["apple.com","icloud.com","me.com","itunes.com"],text:/\b(apple|icloud|itunes)\b/i},
+  {name:"Microsoft",keys:["microsoft","office365","outlook"],domains:["microsoft.com","outlook.com","live.com","office.com","office365.com","microsoftonline.com","hotmail.com","microsoft365.com"],text:/\bmicrosoft\b/i},
+  {name:"Google",keys:["google","gmail"],domains:["google.com","google.es","google.com.mx","google.com.ar","gmail.com","googlemail.com","googleusercontent.com","googleapis.com","withgoogle.com","googleadservices.com","youtube.com"],text:null},
+  {name:"Correos",keys:["correos"],domains:["correos.es","correos.com","correosexpress.com"],text:/\bCorreos\b/},
+  {name:"DHL",keys:["dhl"],domains:["dhl.com","dhl.es","dhl.de","dhl.com.mx"],text:/\bDHL\b/},
+  {name:"FedEx",keys:["fedex"],domains:["fedex.com"],text:/\bfedex\b/i},
+  {name:"Santander",keys:["santander"],domains:["santander.com","bancosantander.es","santander.com.mx","santander.com.ar","santander.com.br","santander.cl","santander.co.uk"],text:/\bsantander\b/i},
+  {name:"BBVA",keys:["bbva"],domains:["bbva.es","bbva.com","bbva.mx","bbva.com.ar","bbva.pe","bbva.com.co"],text:/\bbbva\b/i},
+  {name:"CaixaBank",keys:["caixabank","lacaixa"],domains:["caixabank.es","caixabank.com","lacaixa.es"],text:/\b(caixabank|la caixa)\b/i},
+  {name:"la Agencia Tributaria",keys:["agenciatributaria","hacienda","aeat"],domains:["agenciatributaria.es","agenciatributaria.gob.es"],text:/\b(agencia tributaria|hacienda)\b/i},
+  {name:"Mercado Libre",keys:["mercadolibre","mercadolivre"],domains:["mercadolibre.com","mercadolibre.com.ar","mercadolibre.com.mx","mercadolibre.cl","mercadolibre.com.co","mercadolibre.com.uy","mercadolibre.com.pe","mercadolivre.com.br"],text:/\bmercado ?libre\b/i},
+  {name:"Mercado Pago",keys:["mercadopago"],domains:["mercadopago.com","mercadopago.com.ar","mercadopago.com.mx","mercadopago.cl","mercadopago.com.br","mercadopago.com.co"],text:/\bmercado ?pago\b/i},
+  {name:"Facebook",keys:["facebook"],domains:["facebook.com","facebookmail.com","fb.com","meta.com"],text:null},
+  {name:"Instagram",keys:["instagram"],domains:["instagram.com","facebookmail.com"],text:null},
+  {name:"WhatsApp",keys:["whatsapp"],domains:["whatsapp.com","whatsapp.net"],text:null},
+  {name:"la DGT",keys:["dgt"],domains:["dgt.es"],text:/\bDGT\b/}
+];
+
+const GROUPS = [
+  {id:"prisa",w:15,t:"Mete prisa o amenaza",d:"Las estafas buscan que actúes rápido y sin pensar: plazos de horas, bloqueos o últimos avisos.",
+   p:["urgente","inmediatamente","de inmediato","24 horas","48 horas","72 horas","último aviso","acción requerida","acción inmediata","será suspendida","será bloqueada","ha sido suspendida","ha sido bloqueada","bloqueo de su cuenta","bloqueo de tu cuenta","evite la suspensión","evita la suspensión","expira hoy","caduca hoy","urgent","immediately","suspended","final notice","action required"]},
+  {id:"datos",w:20,t:"Pide datos personales o contraseñas",d:"Ninguna empresa seria te pide contraseñas, códigos o datos de tarjeta por email.",
+   p:["verifique su identidad","verifica tu identidad","confirme sus datos","confirma tus datos","actualice sus datos","actualiza tus datos","contraseña","número de tarjeta","datos de tu tarjeta","datos de su tarjeta","CVV","código de seguridad","PIN","clave de acceso","código de verificación","datos bancarios","inicie sesión para","inicia sesión para","verify your account","password"]},
+  {id:"dinero",w:15,t:"Habla de dinero, premios o reembolsos",d:"Premios inesperados, devoluciones o pagos pendientes son el gancho más común.",
+   p:["ha ganado","has ganado","premio","sorteo","reembolso","devolución pendiente","herencia","bitcoin","criptomoneda","tarjeta regalo","gift card","you have won","refund","abone el importe","abona el importe","pague aquí","paga aquí"]},
+  {id:"paquete",w:12,t:"Usa el truco del paquete retenido",d:"Las falsas empresas de mensajería piden un pequeño pago para quedarse con los datos de tu tarjeta.",
+   p:["paquete retenido","envío retenido","tasas de aduana","gastos de envío pendientes","pago pendiente","no hemos podido entregar","intento de entrega","reprogramar la entrega","reprogramar su entrega","devuelto al remitente"]},
+  {id:"saludo",w:8,t:"Saludo genérico",d:"Si de verdad fueras su cliente, lo normal es que usaran tu nombre.",
+   p:["estimado cliente","estimada cliente","estimado usuario","querido cliente","querido usuario","dear customer","dear user","estimado/a","estimada/o"]}
+];
+
+/* ---------- Utilidades de dominio ---------- */
+const isIP = h => /^\d{1,3}(\.\d{1,3}){3}$/.test(h) || h.startsWith("[");
+function orgDomain(host){
+  host = (host||"").toLowerCase().replace(/\.$/,"");
+  if (!host || isIP(host)) return host;
+  const p = host.split(".");
+  if (p.length <= 2) return host;
+  return MULTI.has(p.slice(-2).join(".")) ? p.slice(-3).join(".") : p.slice(-2).join(".");
+}
+function tokenHas(token, key){
+  return token === key || token.startsWith(key) || (key.length >= 6 && token.includes(key));
+}
+function hostBrand(host){
+  host = (host||"").toLowerCase();
+  if (!host || isIP(host)) return null;
+  const org = orgDomain(host);
+  const raw = host.split(/[.\-]/);
+  const look = host.replace(/0/g,"o").replace(/1/g,"l").replace(/3/g,"e").replace(/5/g,"s").replace(/rn/g,"m").replace(/vv/g,"w").split(/[.\-]/);
+  for (const b of BRANDS){
+    if (b.domains.includes(org)) continue;
+    for (const k of b.keys){
+      if (raw.some(t => tokenHas(t,k))) return {brand:b, lookalike:false};
+      if (look.some(t => tokenHas(t,k))) return {brand:b, lookalike:true};
+    }
+  }
+  return null;
+}
+function parseAddr(s){
+  s = (s||"").trim();
+  if (!s) return null;
+  let name = "", addr = "";
+  const m = s.match(/^\s*"?([^"<]*?)"?\s*<([^>]+)>/);
+  if (m){ name = m[1].trim(); addr = m[2].trim(); }
+  else { const a = s.match(/[^\s<>"]+@[^\s<>"]+/); addr = a ? a[0] : ""; name = s.replace(addr,"").trim(); }
+  addr = addr.toLowerCase().replace(/[>;,]+$/,"");
+  const domain = addr.includes("@") ? addr.split("@").pop() : "";
+  return {name, addr, domain, org: orgDomain(domain)};
+}
+
+/* ---------- Decodificación ---------- */
+function bytesToText(bytes, cs){
+  try { return new TextDecoder(cs || "utf-8").decode(bytes); } catch(e){ return new TextDecoder("utf-8").decode(bytes); }
+}
+function qpBytes(s){
+  const out = [];
+  const chars = Array.from(s);
+  for (let i=0;i<chars.length;i++){
+    const c = chars[i];
+    if (c === "=" && /^[0-9A-Fa-f]{2}$/.test((chars[i+1]||"")+(chars[i+2]||""))){ out.push(parseInt(chars[i+1]+chars[i+2],16)); i+=2; }
+    else { const code = c.codePointAt(0); if (code < 128) out.push(code); else out.push(...new TextEncoder().encode(c)); }
+  }
+  return new Uint8Array(out);
+}
+const qp = s => bytesToText(qpBytes(s.replace(/=\n/g,"")));
+function decodeMimeWords(s){
+  return (s||"").replace(/=\?([^?]+)\?([BQbq])\?([^?]*)\?=/g, (m, cs, enc, txt) => {
+    try {
+      const bytes = enc.toUpperCase()==="B" ? Uint8Array.from(atob(txt), c => c.charCodeAt(0)) : qpBytes(txt.replace(/_/g," "));
+      return bytesToText(bytes, cs.toLowerCase());
+    } catch(e){ return m; }
+  }).replace(/\?=\s+=\?/g,"");
+}
+function b64(s){ try { return bytesToText(Uint8Array.from(atob(s.replace(/\s+/g,"")), c => c.charCodeAt(0))); } catch(e){ return ""; } }
+function decodeBody(body, H){
+  let out = body;
+  const cte = (H.get("content-transfer-encoding")||"").toLowerCase();
+  if (cte.includes("base64")) out = b64(body);
+  else if (cte.includes("quoted-printable") || /content-transfer-encoding:\s*quoted-printable/i.test(body)) out = qp(body);
+  const re = /content-transfer-encoding:\s*base64[^\n]*\n(?:[^\n]+\n)*?\n([A-Za-z0-9+\/=\n]{40,})/gi;
+  let m; while ((m = re.exec(body))) out += "\n" + b64(m[1]);
+  return out;
+}
+function stripHtml(s){
+  return s.replace(/<(style|script)[\s\S]*?<\/\1>/gi," ").replace(/<br\s*\/?>|<\/p>|<\/div>/gi,"\n").replace(/<[^>]+>/g," ")
+    .replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&quot;/g,'"').replace(/&#39;/g,"'")
+    .replace(/&#(\d+);/g,(m,n)=>String.fromCodePoint(+n));
+}
+
+/* ---------- Cabeceras ---------- */
+const KNOWN = new Set(["received","from","to","subject","date","message-id","return-path","authentication-results","arc-authentication-results","dkim-signature","received-spf","reply-to","mime-version","content-type","delivered-to","list-unsubscribe","x-mailer","x-received","arc-seal","arc-message-signature"]);
+function parseHeaders(text){
+  const t = text.replace(/^\s+/,"");
+  const idx = t.search(/\n[ \t]*\n/);
+  const head = idx >= 0 ? t.slice(0, idx) : t;
+  const body = idx >= 0 ? t.slice(idx).replace(/^\s+/,"") : "";
+  const lines = head.replace(/\n[ \t]+/g," ").split("\n");
+  const list = []; let known = 0, other = 0;
+  for (const line of lines){
+    const m = line.match(/^([A-Za-z][A-Za-z0-9-]*):\s?(.*)$/);
+    if (m){ const n = m[1].toLowerCase(); list.push([n, m[2]]); if (KNOWN.has(n)) known++; }
+    else if (line.trim()) other++;
+  }
+  const ok = known >= 3 && other <= Math.max(2, list.length * 0.3);
+  return { ok, body, get: n => (list.find(h => h[0]===n)||[])[1], all: n => list.filter(h => h[0]===n).map(h => h[1]) };
+}
+
+/* ---------- Enlaces ---------- */
+function toLink(s){
+  s = s.replace(/[.,;:!?»”’'")\]]+$/,"");
+  const u = /^https?:\/\//i.test(s) ? s : "http://" + s;
+  try {
+    const url = new URL(u);
+    const host = url.hostname.toLowerCase();
+    return {raw:s, host, org:orgDomain(host), scheme: /^https:/i.test(s) ? "https" : /^http:/i.test(s) ? "http" : "none", user:url.username};
+  } catch(e){ return null; }
+}
+function extractAnchors(body){
+  const out = []; const re = /<a\b[^>]*?href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi; let m;
+  while ((m = re.exec(body))) out.push({href:m[1], text:stripHtml(m[2]).trim()});
+  return out;
+}
+function extractLinks(plain, anchors){
+  const found = new Map();
+  const push = s => { const l = toLink(s); if (l && l.host && l.host.includes(".") && !found.has(l.raw)) found.set(l.raw, l); };
+  anchors.forEach(a => { if (/^https?:/i.test(a.href)) push(a.href); });
+  let rest = plain.replace(/(?:https?:\/\/|www\.)[^\s<>"'()\[\]{}]+/gi, m => { push(m); return " "; });
+  const bare = /(^|[\s(:;"'<>])((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,24}\/[^\s<>"'()\[\]{}]*)/gim;
+  let m; while ((m = bare.exec(rest))) push(m[2]);
+  return [...found.values()];
+}
+
+/* ---------- Análisis ---------- */
+function analyze(raw, mode){
+  const text = raw.replace(/\r\n?/g,"\n");
+  if (text.trim().length < 10) return {error:"empty"};
+  const H = parseHeaders(text);
+  if (mode === "headers" && !H.ok) return {error:"noheaders"};
+
+  const F = [], P = []; let credit = 0;
+  const add = (w,t,d,ev) => F.push({w,t,d,ev:ev||[]});
+  const good = (t,d) => P.push({t,d});
+
+  const body = H.ok ? decodeBody(H.body, H) : text;
+  const subject = H.ok ? decodeMimeWords(H.get("subject")||"") : "";
+  const fromRaw = H.ok ? decodeMimeWords(H.get("from")||"") : ((text.match(/^\s*(?:de|from|remitente)\s*:\s*(.+)$/im)||[])[1]||"");
+  const from = parseAddr(fromRaw);
+  const anchors = extractAnchors(body);
+  const plain = stripHtml(body);
+  const content = subject + "\n" + plain;
+  const links = extractLinks(plain, anchors);
+  const contentNoUrls = norm(content.replace(/(?:https?:\/\/|www\.)\S+/gi," "));
+
+  /* Autenticación */
+  let auth = null;
+  if (H.ok){
+    const ar = H.all("authentication-results")[0] || H.all("arc-authentication-results")[0] || "";
+    const rspf = (H.get("received-spf")||"").match(/^\s*(\w+)/);
+    const spf = ((ar.match(/\bspf=(\w+)/i)||[])[1] || (rspf && rspf[1]) || "").toLowerCase();
+    const dmarc = ((ar.match(/\bdmarc=(\w+)/i)||[])[1]||"").toLowerCase();
+    const dkimRes = [...ar.matchAll(/\bdkim=(\w+)([^;]*)/gi)].map(m => ({r:m[1].toLowerCase(), d:((m[2].match(/header\.(?:d|i)=@?([^\s;]+)/i)||[])[1]||"").toLowerCase()}));
+    const sigD = H.all("dkim-signature").map(v => ((v.match(/\bd=([^;\s]+)/i)||[])[1]||"").toLowerCase()).filter(Boolean);
+    const mailfrom = ((ar.match(/smtp\.mailfrom=([^\s;]+)/i)||[])[1]||"").replace(/^.*@/,"").toLowerCase();
+    const rp = parseAddr(H.get("return-path")||"");
+    const rpDomain = (rp && rp.domain) || mailfrom;
+    const reply = parseAddr(decodeMimeWords(H.get("reply-to")||""));
+    const received = H.all("received");
+    const firstHop = received[received.length-1] || "";
+    const ip = (firstHop.match(/\[(\d{1,3}(?:\.\d{1,3}){3})\]/)||[])[1] || "";
+    auth = {ar, spf, dmarc, dkimRes, sigD, rpDomain, reply, hops:received.length, ip};
+
+    const fd = from ? from.domain : "(desconocido)";
+    if (!ar && !rspf){
+      add(5,"No hay resultados de autenticación","Las cabeceras no incluyen la comprobación que hace tu proveedor de correo. Asegúrate de copiarlas completas.");
+    }
+    if (dmarc === "fail"){
+      add(45,"El dominio del remitente no reconoce este envío",`La comprobación DMARC ha fallado: el correo dice venir de ${fd}, pero ese dominio no lo autorizó. Es la señal técnica más clara de suplantación.`);
+    } else if (dmarc === "pass"){
+      credit += 15;
+      good("DMARC correcto",`El dominio ${fd} respalda este envío. Ojo: esto confirma quién lo envía, no que tenga buenas intenciones.`);
+    } else if (ar){
+      add(6,"El dominio no tiene protección anti-suplantación",`${fd} no publica una política DMARC, así que es más fácil hacerse pasar por él.`);
+    }
+    if (spf === "fail") add(25,"El servidor que lo envió no estaba autorizado","La comprobación SPF ha fallado: el correo salió de un servidor que el dominio no reconoce.");
+    else if (spf === "softfail") add(12,"El servidor de envío no está del todo autorizado","SPF da un resultado dudoso (softfail): el dominio no reconoce ese servidor como propio.");
+    else if (spf === "pass"){ credit += 3; good("SPF correcto","El servidor que envió el correo está autorizado por su dominio."); }
+    else if (spf) add(4,"SPF sin resultado claro",`La comprobación SPF dio «${spf}».`);
+
+    const dkPass = dkimRes.filter(x => x.r === "pass");
+    if (dkPass.length){
+      const aligned = from && dkPass.some(x => orgDomain(x.d) === from.org);
+      credit += aligned ? 5 : 2;
+      good("Firma digital válida (DKIM)", aligned ? `Está firmado por el propio dominio ${from.org}, así que no se ha modificado por el camino.` : "El mensaje tiene una firma digital válida, aunque de otro dominio (habitual en plataformas de envío).");
+    } else if (dkimRes.some(x => x.r === "fail")){
+      add(15,"La firma digital (DKIM) no es válida","La firma no coincide: el mensaje pudo modificarse o la firma es falsa.");
+    } else if (ar){
+      add(6,"Sin firma digital (DKIM)","Los envíos de empresas legítimas casi siempre van firmados.");
+    }
+    if (reply && reply.domain && from && reply.org !== from.org){
+      const freeR = FREE.has(reply.domain) && !FREE.has(from.domain);
+      add(freeR ? 25 : 18,"Las respuestas irían a otra dirección",`Si respondes, tu mensaje llegaría a ${reply.addr} y no a ${from.addr}.${freeR ? " Además es una cuenta gratuita, algo impropio de una empresa." : ""}`,[reply.addr]);
+    }
+    if (rpDomain && from && orgDomain(rpDomain) !== from.org && dmarc !== "pass"){
+      add(6,"La dirección técnica de envío es de otro dominio",`Sale desde ${rpDomain}. Es habitual en plataformas de email marketing, pero junto a otras señales suma sospecha.`);
+    }
+    if (H.get("list-unsubscribe")) good("Incluye opción de baja estándar","Tiene la cabecera de baja que usan los envíos legítimos de marketing.");
+  }
+
+  /* Remitente */
+  let fromBrandFlag = null;
+  if (from && from.domain){
+    const fb = hostBrand(from.domain);
+    if (fb){
+      fromBrandFlag = fb.brand;
+      add(fb.lookalike ? 40 : 35,`La dirección del remitente imita a ${fb.brand.name}`,`El email llega desde ${from.domain}, que no es un dominio oficial de ${fb.brand.name}.${fb.lookalike ? " Usa números o letras parecidas para engañar a la vista." : ""}`,[from.addr]);
+    } else if (from.name){
+      const db = BRANDS.find(b => (b.text ? new RegExp(b.text.source,"i") : new RegExp("\\b(" + b.keys.join("|") + ")\\b","i")).test(from.name));
+      if (db && !db.domains.includes(from.org)){
+        fromBrandFlag = db;
+        if (FREE.has(from.domain)) add(35,`Firma como ${db.name}, pero escribe desde una cuenta gratuita`,`Cualquiera puede ponerse el nombre que quiera. Lo que cuenta es la dirección: ${from.addr}.`,[from.addr]);
+        else add(30,`El nombre dice ${db.name}, pero la dirección no es suya`,`Cualquiera puede ponerse el nombre que quiera. Lo que cuenta es la dirección: ${from.addr}.`,[from.addr]);
+      }
+    }
+  }
+
+  /* Enlaces */
+  const lf = {ip:[],short:[],tld:[],puny:[],brand:[],http:[],at:[],deep:[]};
+  let brandLook = false, brandHit = null;
+  for (const l of links){
+    if (isIP(l.host)) lf.ip.push(l.raw);
+    if (SHORT.has(l.host) || SHORT.has(l.org)) lf.short.push(l.raw);
+    if (BADTLD.has(l.host.split(".").pop())) lf.tld.push(l.host);
+    if (l.host.includes("xn--")) lf.puny.push(l.host);
+    if (l.user) lf.at.push(l.raw);
+    if (l.scheme === "http") lf.http.push(l.raw);
+    if (l.host.split(".").length >= 5) lf.deep.push(l.host);
+    const hb = hostBrand(l.host);
+    if (hb){ lf.brand.push(l.host); brandHit = brandHit || hb.brand; brandLook = brandLook || hb.lookalike; }
+  }
+  const uniq = a => [...new Set(a)].slice(0,3);
+  if (lf.brand.length) add(brandLook ? 40 : 35,`Un enlace se hace pasar por ${brandHit.name}`,`Lleva a una web que usa el nombre de ${brandHit.name} pero no es la oficial.${brandLook ? " Cambia letras por números para que no lo notes." : ""}`,uniq(lf.brand));
+  if (lf.puny.length) add(25,"Enlace con letras disfrazadas","El dominio usa caracteres de otros alfabetos que se ven iguales que los normales.",uniq(lf.puny));
+  if (lf.ip.length) add(25,"Enlace a una dirección numérica","Las empresas reales enlazan a su web con nombre, no a una dirección IP.",uniq(lf.ip));
+  if (lf.at.length) add(20,"Enlace con un truco de arroba","Todo lo que va antes de la @ en un enlace se ignora: la web real es la que va después.",uniq(lf.at));
+  if (lf.tld.length) add(15,"Dominio con terminación poco fiable","Terminaciones como estas son baratas y muy usadas en estafas.",uniq(lf.tld));
+  if (lf.short.length) add(12,"Enlace acortado","Los acortadores esconden la web de destino real.",uniq(lf.short));
+  if (lf.deep.length) add(8,"Dirección web enrevesada","Muchos subdominios encadenados suelen servir para colar un nombre conocido al principio.",uniq(lf.deep));
+  if (lf.http.length) add(6,"Enlace sin conexión segura","Usa http en lugar de https. Ninguna web de pagos o bancos lo haría.",uniq(lf.http));
+
+  const mism = [];
+  for (const a of anchors){
+    const tm = a.text.match(/((?:[a-z0-9-]+\.)+[a-z]{2,})/i);
+    const hl = toLink(a.href);
+    if (tm && hl && /^https?:/i.test(a.href) && orgDomain(tm[1]) !== hl.org) mism.push(`${tm[1]} → ${hl.host}`);
+  }
+  if (mism.length) add(25,"El enlace muestra una web pero lleva a otra","El texto que ves no coincide con el destino real del enlace.",uniq(mism));
+
+  /* Marca mencionada en el texto */
+  const authOK = auth && auth.dmarc === "pass";
+  if (!fromBrandFlag && !brandHit && links.length){
+    const b = BRANDS.find(b => b.text && b.text.test(content));
+    if (b && !links.some(l => b.domains.includes(l.org)) && !(authOK && from && b.domains.includes(from.org))){
+      add(20,`Dice ser de ${b.name}, pero sus enlaces llevan a otra web`,`Ningún enlace va a la web oficial (${b.domains[0]}). Las empresas reales enlazan a su propio dominio.`,uniq(links.map(l => l.host)));
+    }
+  }
+
+  /* Contenido */
+  const hitGroups = new Set();
+  for (const g of GROUPS){
+    const hits = g.p.filter(p => new RegExp("(^|[^a-z0-9])" + escRe(norm(p)) + "($|[^a-z0-9])").test(contentNoUrls));
+    if (hits.length){ hitGroups.add(g.id); add(g.w, g.t, g.d, hits.slice(0,3).map(h => `«${h}»`)); }
+  }
+  const att = [...new Set((content.replace(/(?:https?:\/\/|www\.)\S+/gi," ").match(/\b[\w-]+\.(zip|rar|7z|exe|scr|js|vbs|iso|img|bat|cmd|msi|jar|html?)\b/gi)||[]))];
+  if (att.length) add(20,"Menciona un adjunto peligroso","Este tipo de archivos puede instalar programas maliciosos al abrirlos.",att.slice(0,3));
+  const caps = (content.match(/\b[A-ZÁÉÍÓÚÑ]{4,}\b/g)||[]).length;
+  if (caps >= 6 || /!{2,}/.test(content)) add(5,"Exceso de mayúsculas o exclamaciones","Es un recurso típico para crear alarma.");
+
+  if (!hitGroups.has("datos") && !hitGroups.has("dinero")) good("No pide datos ni dinero","No encontramos peticiones de contraseñas, tarjetas ni pagos.");
+  const linkFlags = lf.ip.length + lf.short.length + lf.tld.length + lf.puny.length + lf.brand.length + lf.at.length + mism.length;
+  if (!links.length) good("No contiene enlaces","Sin enlaces, el riesgo de acabar en una web falsa es menor.");
+  else if (!linkFlags) good("Enlaces sin trucos","No vemos acortadores, direcciones IP ni dominios que imiten a otros.");
+
+  let score = F.reduce((s,f) => s + f.w, 0) - credit;
+  if (auth && auth.dmarc === "fail") score = Math.max(score, 50);
+  if (F.some(f => f.w >= 30)) score = Math.max(score, 30);
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  const level = score >= 45 ? "peligroso" : score >= 20 ? "sospechoso" : "seguro";
+  F.sort((a,b) => b.w - a.w);
+  return {level, score, F, P, auth, from, hasHeaders:H.ok};
+}
+
+/* ---------- Render ---------- */
+const COPY = {
+  peligroso:{stamp:"Peligroso",h:"Tiene toda la pinta de ser una estafa",p:"Hay varias señales claras de engaño. No hagas clic en sus enlaces ni respondas."},
+  sospechoso:{stamp:"Sospechoso",h:"Hay señales que no cuadran",p:"No es seguro que sea una estafa, pero trátalo con cuidado hasta confirmarlo por otra vía."},
+  seguro:{stamp:"Sin alertas",h:"No vemos señales de estafa",p:"No encontramos trucos habituales de phishing en este email."}
+};
+const sevOf = w => w >= 25 ? ["alto","Riesgo alto"] : w >= 10 ? ["medio","Riesgo medio"] : ["bajo","Detalle menor"];
+const dot = v => v === "pass" ? "g" : (v === "fail" ? "r" : (v ? "y" : ""));
+
+function render(r, mode){
+  const out = $("#result");
+  if (r.error){
+    out.innerHTML = r.error === "empty"
+      ? `<div class="alert"><strong>Pega el contenido del email para analizarlo.</strong><p>O prueba con uno de los ejemplos.</p></div>`
+      : `<div class="alert"><strong>No encontramos cabeceras en el texto</strong><p>Las cabeceras empiezan con líneas como Received: o From:. <a href="#cabeceras">Mira cómo copiarlas</a> o usa la pestaña «Texto del email».</p></div>`;
+    out.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+    return;
+  }
+  const c = COPY[r.level];
+  let extra = (r.level === "seguro" && !r.hasHeaders) ? " Para más certeza, analiza también sus cabeceras." : "";
+  let html = `<div class="verdict v-${r.level}">
+      <div class="stamp" role="img" aria-label="Veredicto: ${c.stamp}">${c.stamp}</div>
+      <div class="verdict-text"><h2>${c.h}</h2><p>${c.p}${extra}</p>
+        <div class="meter" aria-hidden="true"><span style="width:${Math.max(r.score,3)}%"></span></div>
+        <p class="score">Nivel de riesgo: <strong>${r.score}</strong> de 100</p></div>
+    </div>`;
+
+  if (r.F.length){
+    html += `<div class="block"><h3>Señales encontradas</h3><ul class="list">` + r.F.map(f => {
+      const [k,label] = sevOf(f.w);
+      return `<li class="item sev-${k}"><span class="sev-tag">${label}</span><strong>${esc(f.t)}</strong><p>${esc(f.d)}</p>${f.ev.length ? `<div class="ev">${f.ev.map(e => `<code>${esc(e)}</code>`).join("")}</div>` : ""}</li>`;
+    }).join("") + `</ul></div>`;
+  }
+  if (r.P.length){
+    html += `<div class="block"><h3>Lo que está bien</h3><ul class="list">` + r.P.map(p => `<li class="item sev-ok"><strong>${esc(p.t)}</strong><p>${esc(p.d)}</p></li>`).join("") + `</ul></div>`;
+  }
+
+  const todo = r.level === "seguro"
+    ? ["Aun así, si te piden dinero o contraseñas, confírmalo por otra vía.","Antes de abrir un enlace, pasa el ratón por encima o mantén el dedo pulsado para ver adónde lleva."]
+    : ["No hagas clic en los enlaces ni descargues adjuntos.","Si dice ser de una empresa, entra en su web o app escribiendo tú la dirección, o llama a su teléfono oficial.","Márcalo como phishing o spam en tu correo: así ayudas a proteger a otras personas.","Si ya escribiste una contraseña o datos de tarjeta, cámbiala ya y avisa a tu banco."];
+  html += `<div class="block todo"><h3>Qué hacer ahora</h3><ul>${todo.map(t => `<li>${t}</li>`).join("")}</ul></div>`;
+
+  if (r.auth){
+    const a = r.auth, f = r.from;
+    const dk = a.dkimRes.length ? a.dkimRes.map(x => `${x.r}${x.d ? " (" + x.d + ")" : ""}`).join(", ") : (a.sigD.length ? "firmado por " + a.sigD.join(", ") : "");
+    const dkV = a.dkimRes.some(x => x.r === "pass") ? "pass" : (a.dkimRes.some(x => x.r === "fail") ? "fail" : (a.dkimRes.length ? "none" : ""));
+    const row = (k,v,d) => `<tr><th scope="row">${k}</th><td>${d !== undefined ? `<span class="dot ${dot(d)}"></span>` : ""}${v ? esc(v) : "<span style='color:var(--muted)'>No aparece</span>"}</td></tr>`;
+    html += `<details class="block" style="border-bottom:1px solid var(--line)"><summary>Ver ficha técnica</summary><div class="tech-wrap"><table><tbody>
+      ${row("Remitente visible", f ? (f.name ? f.name + " <" + f.addr + ">" : f.addr) : "")}
+      ${row("Dirección de envío real", a.rpDomain)}
+      ${row("Responder a", a.reply ? a.reply.addr : "")}
+      ${row("SPF", a.spf, a.spf)}
+      ${row("DKIM", dk, dkV)}
+      ${row("DMARC", a.dmarc, a.dmarc)}
+      ${row("Servidores atravesados", a.hops ? String(a.hops) : "")}
+      ${row("IP de origen", a.ip)}
+    </tbody></table></div></details>`;
+  }
+  out.innerHTML = html;
+  out.scrollIntoView({behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block:"start"});
+}
+
+/* ---------- Ejemplos ---------- */
+const EXAMPLES = [
+{mode:"text", text:`De: Correos España <avisos@correos-es-envios.top>
+Asunto: Su paquete está retenido - acción requerida
+
+Estimado cliente:
+
+No hemos podido entregar su paquete n.º ES2938471 porque hay gastos de envío pendientes (1,99 €).
+
+Si no abona el importe en las próximas 24 horas, el paquete será devuelto al remitente.
+
+Pague aquí de forma segura: http://correos-entregas.xyz/pago?id=ES2938471
+
+Correos - Servicio de Atención al Cliente`},
+{mode:"headers", text:`Delivered-To: laura.gomez@gmail.com
+Received: by 2002:a05:6400:1b8f:b0:2a1:4e3c:9f21 with SMTP id r15csp812334pxb;
+        Mon, 9 Nov 2026 08:14:22 -0800 (PST)
+Received: from srv88.envios-masivos.top (srv88.envios-masivos.top. [185.243.112.47])
+        by mx.google.com with ESMTP id d4si1029384wrx.312.2026.11.09.08.14.21
+        for <laura.gomez@gmail.com>; Mon, 09 Nov 2026 08:14:21 -0800 (PST)
+Authentication-Results: mx.google.com;
+       spf=softfail (google.com: domain of transitioning bounce@envios-masivos.top does not designate 185.243.112.47 as permitted sender) smtp.mailfrom=bounce@envios-masivos.top;
+       dkim=none;
+       dmarc=fail (p=NONE sp=NONE dis=NONE) header.from=bbva-seguridad-clientes.com
+Return-Path: <bounce@envios-masivos.top>
+From: "BBVA Seguridad" <alertas@bbva-seguridad-clientes.com>
+Reply-To: soporte.bbva.clientes@gmail.com
+To: laura.gomez@gmail.com
+Subject: Aviso urgente: acceso inusual a su cuenta
+Date: Mon, 9 Nov 2026 17:14:19 +0100
+Message-ID: <20261109161419.4471@envios-masivos.top>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Estimado cliente:
+
+Hemos detectado un acceso inusual a su banca online. Por su seguridad, su cuenta será bloqueada en 24 horas si no verifica su identidad.
+
+Confirme sus datos aquí: http://bbva-seguridad-clientes.com/acceso
+
+Atentamente,
+Departamento de Seguridad BBVA`},
+{mode:"headers", text:`Delivered-To: laura.gomez@gmail.com
+Received: from mta12.libreriaalba.com (mta12.libreriaalba.com. [203.0.113.25])
+        by mx.google.com with ESMTPS id k7si2201933qkb.88.2026.11.09.10.02.11
+        for <laura.gomez@gmail.com>; Mon, 09 Nov 2026 10:02:11 -0800 (PST)
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@libreriaalba.com header.s=s1 header.b=Xk3pQ9aB;
+       spf=pass (google.com: domain of rebote@envios.libreriaalba.com designates 203.0.113.25 as permitted sender) smtp.mailfrom=rebote@envios.libreriaalba.com;
+       dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=libreriaalba.com
+Return-Path: <rebote@envios.libreriaalba.com>
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=libreriaalba.com; s=s1;
+        h=from:to:subject:date:message-id; bh=2jUSOH9NhtVGCQWNr9BrIAPreKQjO6Sn7XIkfJVOzv8=; b=Xk3pQ9aB
+From: Librería Alba <novedades@libreriaalba.com>
+To: laura.gomez@gmail.com
+Subject: Las novedades de noviembre ya están aquí
+Date: Mon, 9 Nov 2026 19:02:09 +0100
+Message-ID: <a81c2f.20261109@libreriaalba.com>
+List-Unsubscribe: <https://libreriaalba.com/baja?u=8f2a>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+
+Hola, Laura:
+
+Este mes llegan a la librería 12 títulos nuevos, entre ellos la última novela de nuestra autora del mes y una selección de libros ilustrados para regalar.
+
+Míralos aquí: https://libreriaalba.com/novedades
+
+Y el sábado 21 te esperamos en la tienda para la firma de libros.
+
+Si no quieres recibir más correos, puedes darte de baja: https://libreriaalba.com/baja?u=8f2a`}
+];
+
+/* ---------- Interacción ---------- */
+let mode = "text";
+const HINTS = {
+  text:{hint:"Copia el email entero, con el remitente si puedes, y pégalo aquí.", ph:"De: Nombre <direccion@ejemplo.com>\nAsunto: ...\n\nTexto del mensaje con sus enlaces..."},
+  headers:{hint:'Pega las cabeceras completas del email. <a href="#cabeceras">¿Cómo las consigo?</a>', ph:"Received: from ...\nAuthentication-Results: ...\nFrom: ...\nSubject: ..."}
+};
+function setMode(m){
+  mode = m;
+  document.querySelectorAll(".tab").forEach(t => t.setAttribute("aria-selected", String(t.dataset.mode === m)));
+  $("#panel").setAttribute("aria-labelledby", "tab-" + m);
+  $("#hint").innerHTML = HINTS[m].hint;
+  $("#input").placeholder = HINTS[m].ph;
+}
+document.querySelectorAll(".tab").forEach(t => t.addEventListener("click", () => setMode(t.dataset.mode)));
+$("#analyzeBtn").addEventListener("click", () => render(analyze($("#input").value, mode), mode));
+$("#input").addEventListener("keydown", e => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") $("#analyzeBtn").click(); });
+$("#clearBtn").addEventListener("click", () => { $("#input").value = ""; $("#result").innerHTML = ""; $("#input").focus(); });
+document.querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
+  const ex = EXAMPLES[+b.dataset.ex]; setMode(ex.mode); $("#input").value = ex.text; $("#analyzeBtn").click();
+}));
+
+function toast(msg){ const t = $("#toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 2200); }
+$("#shareBtn").addEventListener("click", async () => {
+  const data = {title:"¿Este email es de fiar?", text:"Detector de phishing gratuito: pega un email sospechoso y te dice si es una estafa.", url:location.href.split("#")[0]};
+  try {
+    if (navigator.share) { await navigator.share(data); return; }
+    await navigator.clipboard.writeText(data.url); toast("Enlace copiado");
+  } catch(e){ if (e && e.name !== "AbortError") toast("No se pudo compartir. Copia la dirección de la página."); }
+});
+</script>
+</body>
+</html>
